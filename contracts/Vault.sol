@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./interface/IZapper.sol";
 import "./interface/IController.sol";
-import "hardhat/console.sol";
 
 contract Vault is ERC20 {
     using SafeMath for uint256;
@@ -101,17 +100,13 @@ contract Vault is ERC20 {
             IERC20(_inToken).safeApprove(address(zapper), _amount);
             uint256 _outAmount = zapper.ZapIn(_inToken, address(token), isPairToken, _amount);
 
-            console.log("   [deposit] _outAmount => ", _outAmount);
             uint256 _pool = balance();
             uint256 shares = 0;
-            console.log("   [deposit] _pool => ", _pool);
-            console.log("   [deposit] totalSupply => ", totalSupply());
             if (totalSupply() == 0) {
                 shares = _outAmount;
             } else {
                 shares = (_outAmount.mul(totalSupply())).div(_pool);
             }
-            console.log("   [deposit] shares => ", shares);
             _mint(msg.sender, shares);
         }
     }

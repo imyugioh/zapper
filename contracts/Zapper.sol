@@ -8,7 +8,6 @@ import "./interface/IWETH.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "hardhat/console.sol";
 
 contract Zapper {
     using SafeMath for uint256;
@@ -43,15 +42,12 @@ contract Zapper {
 
     function ZapInSingleToken(address inToken, address outToken) internal returns (uint256) {
         uint256 _inBalance = IERC20(inToken).balanceOf(address(this));
-        console.log("   [ZapInSingleToken] inToken %s, outToken %s", inToken, outToken);
 
         IERC20(inToken).safeApprove(uniRouter, 0);
         IERC20(inToken).safeApprove(uniRouter, _inBalance);
-        console.log("   [ZapInSingleToken] _inBalance => ", _inBalance);
         _swapUniswap(inToken, outToken, _inBalance);
 
         uint256 _outBalance = IERC20(outToken).balanceOf(address(this));
-        console.log("   [ZapInSingleToken] _outBalance => ", _outBalance);
         IERC20(outToken).safeTransfer(msg.sender, _outBalance);
 
         return _outBalance;
@@ -114,28 +110,11 @@ contract Zapper {
         address _to,
         uint256 _amount
     ) internal {
-        require(_to != address(0));
-
-        address[] memory path;
-
-        if (_from == weth || _to == weth) {
-            path = new address[](2);
-            path[0] = _from;
-            path[1] = _to;
-        } else {
-            path = new address[](3);
-            path[0] = _from;
-            path[1] = weth;
-            path[2] = _to;
-        }
-
-        uint256[] memory out = UniswapRouterV2(uniRouter).getAmountsOut(_amount, path);
-        uint256 minAmount = out[out.length - 1];
-        console.log("   [_swapUniswap] minAmount => ", minAmount);
-        UniswapRouterV2(uniRouter).swapExactTokensForTokens(_amount, minAmount, path, address(this), block.timestamp.add(60));
+        _swap(uniRouter, _from, _to, _amount);
     }
 
-    function _swapSushiswap(
+    function _swap(
+        address router,
         address _from,
         address _to,
         uint256 _amount
@@ -155,6 +134,14 @@ contract Zapper {
             path[2] = _to;
         }
 
-        UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), block.timestamp.add(60));
+        uint256[] memory out = UniswapRouterV2(router).getAmountsOut(_amount, path);
+        uint256 minAmount = out[out.length - 1];
+        UniswapRouterV2(router).swapExactTokensForTokens(
+            _amount,
+            minAmount,
+            path,
+            address(this),
+            block.timestamp.add(60)
+        );
     }
 }
