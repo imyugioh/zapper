@@ -14,10 +14,6 @@ const toWei = (amount, decimal = 18) => {
   return hre.ethers.utils.parseUnits(hre.ethers.BigNumber.from(amount).toString(), decimal);
 };
 
-const fromWei = (amount, decimal = 18) => {
-  return hre.ethers.utils.formatUnits(amount, decimal);
-};
-
 const unlockAccount = async (address) => {
   await hre.network.provider.send("hardhat_impersonateAccount", [address]);
   return address;
@@ -33,7 +29,6 @@ describe("Zapper test", () => {
   const whale_addr = "0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503";
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const USDT_ADDR = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-  // const SDT_ADDR = "0x73968b9a57c6E53d41345FD57a6E6ae27d6CDB2F";
 
   const WETH_SDT_PAIR = "0xc465C0a16228Ef6fE1bF29C04Fdb04bb797fd537";
   const WETH_USDT_PAIR = "0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852";
@@ -83,50 +78,32 @@ describe("Zapper test", () => {
     await USDC.transfer(alice, toWei(10000, 6), {from: whale});
   });
 
-  it("alice zapper deposit test(single token)", async () => {
-    const _wethBalance = await weth.balanceOf(alice);
-    console.log("Alice's weth balance => ", _wethBalance.toString());
-
-    console.log("Alice's usdt Vault token balance before => ", (await usdtVault.balanceOf(alice)).toString());
-    await weth.approve(usdtVault.address, _wethBalance);
-    await usdtVault.deposit(weth.address, _wethBalance);
-
-    console.log("Alice's usdt Vault token balance after => ", (await usdtVault.balanceOf(alice)).toString());
-  });
-
-  it("alice usdt vault withdraw", async () => {
-    console.log("Alice's usdt vault balance before => ", (await usdtVault.balanceOf(alice)).toString());
-    console.log("Alice's usdt token balance before => ", (await usdt.balanceOf(alice)).toString());
-    await usdtVault.withdrawAll();
-    console.log("Alice's usdt vault balance after => ", (await usdtVault.balanceOf(alice)).toString());
-    console.log("Alice's usdt token balance after => ", (await usdt.balanceOf(alice)).toString());
-  });
-
   it("alice zapper deposit test(USDC)", async () => {
     const _usdcBalance = await USDC.balanceOf(alice);
     console.log("Alice's USDC balance before => ", _usdcBalance.toString());
-
     console.log("Alice's usdt Vault token balance before => ", (await usdtVault.balanceOf(alice)).toString());
+    
     await USDC.approve(usdtVault.address, _usdcBalance);
     await usdtVault.deposit(USDC.address, _usdcBalance);
 
     console.log("Alice's USDC balance after => ", (await USDC.balanceOf(alice)).toString());
-
     console.log("Alice's usdt Vault token balance after => ", (await usdtVault.balanceOf(alice)).toString());
   });
 
   it("alice usdt vault withdraw", async () => {
     console.log("Alice's usdt vault balance before => ", (await usdtVault.balanceOf(alice)).toString());
     console.log("Alice's usdt token balance before => ", (await usdt.balanceOf(alice)).toString());
+    
     await usdtVault.withdrawAll();
+
     console.log("Alice's usdt vault balance after => ", (await usdtVault.balanceOf(alice)).toString());
     console.log("Alice's usdt token balance after => ", (await usdt.balanceOf(alice)).toString());
   });
 
   it("bob zapper deposit test(lp token)", async () => {
     const _wethBalance = await weth.balanceOf(bob);
-    console.log("Bob's weth balance => ", _wethBalance.toString());
 
+    console.log("Bob's weth balance => ", _wethBalance.toString());
     console.log("Bob's Weth/SDT Vault token balance before => ", (await wethSDTVault.balanceOf(bob)).toString());
 
     await weth.approve(wethSDTVault.address, _wethBalance, {from: bob});
@@ -138,7 +115,9 @@ describe("Zapper test", () => {
   it("bob weth/sdt vault withdraw", async () => {
     console.log("Bob's weth/sdt vault balance before => ", (await wethSDTVault.balanceOf(bob)).toString());
     console.log("Bob's lp token balance before => ", (await wethSDT.balanceOf(bob)).toString());
+
     await wethSDTVault.withdrawAll({from: bob});
+
     console.log("Bob's weth/sdt vault balance after => ", (await wethSDTVault.balanceOf(bob)).toString());
     console.log("Bob's lp token balance after => ", (await wethSDT.balanceOf(bob)).toString());
   });
@@ -146,21 +125,21 @@ describe("Zapper test", () => {
   it("craig weth/usdt deposit test(ETH)", async () => {
     let _ethBalance = await web3.eth.getBalance(craig);
     console.log("Craig's eth balance before => ", _ethBalance.toString());
-
     console.log("Craig's weth/usdt Vault token balance before => ", (await wethUSDTVault.balanceOf(craig)).toString());
 
     await wethUSDTVault.depositETH({from: craig, value: toWei(10000)});
 
     _ethBalance = await web3.eth.getBalance(craig);
     console.log("Craig's eth balance after => ", _ethBalance.toString());
-
     console.log("Craig's weth/usdt Vault token balance after => ", (await wethUSDTVault.balanceOf(craig)).toString());
   });
 
   it("craig weth/usdt vault withdraw", async () => {
     console.log("Craig's weth/usdt vault balance before => ", (await wethUSDTVault.balanceOf(craig)).toString());
     console.log("Craig's weth/usdt token balance before => ", (await wethUSDT.balanceOf(craig)).toString());
+    
     await wethUSDTVault.withdrawAll({from: craig});
+    
     console.log("Craig's weth/usdt vault balance after => ", (await wethUSDTVault.balanceOf(craig)).toString());
     console.log("Craig's weth/usdt token balance after => ", (await wethUSDT.balanceOf(craig)).toString());
   });
@@ -168,8 +147,8 @@ describe("Zapper test", () => {
   it("craig weth/usdt deposit test(DAI)", async () => {
     const _daiBalance = await DAI.balanceOf(craig);
     console.log("Craig's DAI balance before => ", _daiBalance.toString());
-
     console.log("Craig's weth/usdt Vault token balance before => ", (await wethUSDTVault.balanceOf(craig)).toString());
+    
     await DAI.approve(wethUSDTVault.address, _daiBalance, {from: craig});
     await wethUSDTVault.deposit(DAI.address, _daiBalance, {from: craig});
 
@@ -180,7 +159,9 @@ describe("Zapper test", () => {
   it("craig weth/usdt vault withdraw", async () => {
     console.log("Craig's weth/usdt vault balance before => ", (await wethUSDTVault.balanceOf(craig)).toString());
     console.log("Craig's weth/usdt token balance before => ", (await wethUSDT.balanceOf(craig)).toString());
+    
     await wethUSDTVault.withdrawAll({from: craig});
+    
     console.log("Craig's weth/usdt vault balance after => ", (await wethUSDTVault.balanceOf(craig)).toString());
     console.log("Craig's weth/usdt token balance after => ", (await wethUSDT.balanceOf(craig)).toString());
   });

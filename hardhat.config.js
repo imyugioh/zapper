@@ -16,7 +16,6 @@ module.exports = {
         url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       },
       accounts: {
-        mnemonic: process.env.MNEMONIC,
         accountsBalance: "1000000000000000000000000",
       },
       allowUnlimitedContractSize: true,

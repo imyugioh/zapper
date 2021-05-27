@@ -15,6 +15,7 @@ contract Zapper {
     using SafeERC20 for IERC20;
     address public constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
+    address public uniRouterV3 = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
     address public uniRouter = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
     address public uniFactory = 0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f;
 
@@ -128,23 +129,10 @@ contract Zapper {
             path[2] = _to;
         }
 
-        UniswapRouterV2(uniRouter).swapExactTokensForTokens(_amount, 0, path, address(this), block.timestamp.add(60));
-    }
-
-    function _swapUniswapWithETH(uint256 _ethAmount, address _to) internal {
-        require(_to != address(0));
-
-        address[] memory path = new address[](2);
-
-        path[0] = weth;
-        path[1] = _to;
-
-        UniswapRouterV2(uniRouter).swapExactETHForTokens{value: _ethAmount}(
-            0,
-            path,
-            address(this),
-            block.timestamp.add(60)
-        );
+        uint256[] memory out = UniswapRouterV2(uniRouter).getAmountsOut(_amount, path);
+        uint256 minAmount = out[out.length - 1];
+        console.log("   [_swapUniswap] minAmount => ", minAmount);
+        UniswapRouterV2(uniRouter).swapExactTokensForTokens(_amount, minAmount, path, address(this), block.timestamp.add(60));
     }
 
     function _swapSushiswap(
@@ -168,21 +156,5 @@ contract Zapper {
         }
 
         UniswapRouterV2(sushiRouter).swapExactTokensForTokens(_amount, 0, path, address(this), block.timestamp.add(60));
-    }
-
-    function _swapSushiswapWithETH(uint256 _ethAmount, address _to) internal {
-        require(_to != address(0));
-
-        address[] memory path = new address[](2);
-
-        path[0] = weth;
-        path[1] = _to;
-
-        UniswapRouterV2(sushiRouter).swapExactETHForTokens{value: _ethAmount}(
-            0,
-            path,
-            address(this),
-            block.timestamp.add(60)
-        );
     }
 }
