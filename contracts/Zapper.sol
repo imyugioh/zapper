@@ -34,7 +34,7 @@ contract Zapper {
         uint256 inAmount
     ) public returns (uint256) {
         uint256 _balance = IERC20(inToken).balanceOf(address(this));
-        if (_balance < inAmount) IERC20(inToken).safeTransferFrom(msg.sender, address(this), inAmount);
+        if (_balance < inAmount) IERC20(inToken).safeTransferFrom(msg.sender, address(this), inAmount.sub(_balance));
 
         if (isPairToken) return ZapInLpToken(inToken, outToken);
         return ZapInSingleToken(inToken, outToken);
